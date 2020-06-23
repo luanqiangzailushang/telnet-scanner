@@ -50,7 +50,7 @@ try:
                         #print line1
       ad=json.dumps(ip_addressname,encoding="utf-8",ensure_ascii=False)
       ul=json.dumps(ipurl,encoding="utf-8",ensure_ascii=False)
-      print ad
+      print (ad)
       print (u"从以上地址当中选择一个地址输入屏幕".decode('gb18030'))
       while True:
             ip_address=raw_input("please input address:").decode('utf-8')
@@ -74,7 +74,7 @@ try:
                         length=len(storeip)
                         print  (u"你输入的地址共有%d个IP地址段如下显示并且保存到ip.xml文件中".decode('gb18030') % length)
                         storeip1=','.join(storeip)
-                        print storeip1
+                        print (storeip1)
                         
                         if __name__ == "__main__":
                               doc = Dom.Document()
@@ -94,8 +94,8 @@ try:
                        count +=1
 except urllib2.URLError,e:
       if hasattr(e,"code"):
-            print e.code
+            print (e.code)
       if hasattr(e,"reason"):
-            print e.reason
+            print (e.reason)
             
  

