@@ -37,10 +37,11 @@ class PriorityQueue:
         return heapq.heappop(self._queue)[-1]
 
 #this should be a dict
-auth_table = [("syk","123456",10),("user","password",10),("tech","tech",1),("root","Zte521",2),("root","xc3511",2),("root","vizxv",1),("admin","admin",1),("root","admin",1),("root","888888",1),("root","xmhdipc",1),("root","juantech",1),("root","123456",1),("root","54321",1),("support","support",1),("root","",1),("admin","password",1),("root","root",1),("root","root",1),("user","user",1),("admin","admin1234",1),("admin","smcadmin",1),("root","klv123",1),("root","klv1234",1),("root","hi3518",1),("root","jvbzd",1),("root","anko",1),("root","zlxx.",1),("root","system",1)]
+#auth_table = [("syk","123456",10),("user","password",10),("tech","tech",1),("root","Zte521",2),("root","xc3511",2),("root","vizxv",1),("admin","admin",1),("root","admin",1),("root","888888",1),("root","xmhdipc",1),("root","juantech",1),("root","123456",1),("root","54321",1),("support","support",1),("root","",1),("admin","password",1),("root","root",1),("root","root",1),("user","user",1),("admin","admin1234",1),("admin","smcadmin",1),("root","klv123",1),("root","klv1234",1),("root","hi3518",1),("root","jvbzd",1),("root","anko",1),("root","zlxx.",1),("root","system",1)]
+auth_table = []
 auth_queue = PriorityQueue()
-for item in auth_table:
-    auth_queue.push(item[0:2],item[-1])
+#for item in auth_table:
+#   auth_queue.push(item[0:2],int(item[-1]))
 
 lastRecv = time.time()
 exitFlag = 0
@@ -66,6 +67,19 @@ def read_ip(file_xml):
         ip_map.append(range(ip2num(x[0]),ip2num(x[1]) + 1))
 #    return [num2ip(item) for pair in ip_map[0:10] for item in pair] 
     return ip_map
+
+def read_auth():
+    fp=open("./auth_config.txt","r")
+    for line in fp.readlines():
+        line=line.replace('\n','')
+        line=line.split(',')
+        auth_table.append(line)
+    print (auth_table)
+    fp.close()
+    for item in auth_table:
+#        print (item[0:2])
+        auth_queue.push(item[0:2],int(item[-1]))
+
 
 def choose_ip(ip_pair):
     if len(ip_pair) > 0:
@@ -142,6 +156,7 @@ class spewer(threading.Thread):
     def __init__(self,filename):
         threading.Thread.__init__(self)
         self.ip_pair = read_ip(filename)
+        read_auth()
 
     def run(self):
         global exitFlag
