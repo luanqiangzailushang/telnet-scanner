@@ -36,12 +36,8 @@ class PriorityQueue:
     def pop(self):
         return heapq.heappop(self._queue)[-1]
 
-#this should be a dict
-#auth_table = [("syk","123456",10),("user","password",10),("tech","tech",1),("root","Zte521",2),("root","xc3511",2),("root","vizxv",1),("admin","admin",1),("root","admin",1),("root","888888",1),("root","xmhdipc",1),("root","juantech",1),("root","123456",1),("root","54321",1),("support","support",1),("root","",1),("admin","password",1),("root","root",1),("root","root",1),("user","user",1),("admin","admin1234",1),("admin","smcadmin",1),("root","klv123",1),("root","klv1234",1),("root","hi3518",1),("root","jvbzd",1),("root","anko",1),("root","zlxx.",1),("root","system",1)]
 auth_table = []
 auth_queue = PriorityQueue()
-#for item in auth_table:
-#   auth_queue.push(item[0:2],int(item[-1]))
 
 lastRecv = time.time()
 exitFlag = 0
@@ -57,15 +53,20 @@ def ip2num(ip,bigendian = True):
 def num2ip(num,bigendian = True):
     return '%s.%s.%s.%s' % ((num >> 24) & 0xff , (num >> 16) & 0xff , (num >> 8) & 0xff , num & 0xff)
 
-def read_ip(file_xml):
+def read_ip():
     ip_map = []
+    ip_pair = []
+    ipstr = sys.argv[2].split(',')
+    for line in ipstr:
+        line=line.split('-')
+        ip_pair.append(line)
 
-    tree = ET.ElementTree(file=file_xml)
-    root = tree.getroot()
-    ip_pair = [child.text.strip().split('-') for child in root]
     for x in ip_pair:
         ip_map.append(range(ip2num(x[0]),ip2num(x[1]) + 1))
-#    return [num2ip(item) for pair in ip_map[0:10] for item in pair] 
+
+ #   print (ip_pair)
+ #   print (ip_map)
+ #   sys.exit(1)
     return ip_map
 
 def read_auth():
@@ -91,7 +92,7 @@ def controlP():
     '''Init threads'''
     scanner_list = []
     start_time = datetime.datetime.now()
-    spewer_thread = spewer("ip.xml")
+    spewer_thread = spewer()
     try:
        spewer_thread.start()
     except:
@@ -153,9 +154,9 @@ class sniffer(threading.Thread):
 
 class spewer(threading.Thread):
     '''send dport=22 package'''
-    def __init__(self,filename):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.ip_pair = read_ip(filename)
+        self.ip_pair = read_ip()
         read_auth()
 
     def run(self):
@@ -213,8 +214,8 @@ class Scanner(threading.Thread):
             del con
                 
 if __name__ == "__main__": 
-    if len(sys.argv) != 2:
-        print ("usage: scanner.py thread_number")
-        print ("example: scanner.py 20")
+    if len(sys.argv) != 3:
+        print ("usage: scanner.py thread_number and ipstr")
+        print ("example: scanner.py 20 192.168.42.3-192.168.42.5,192.168.43.1-192.168.43.5")
         sys.exit(1)
     controlP()

@@ -2,7 +2,7 @@
 #encoding:utf-8
 
 import pexpect
-verify_timeout = 2
+verify_timeout = 3
 class Connection:
     def __init__(self,ip,auth_queue):
         self.new_state(conn_state)
@@ -52,9 +52,12 @@ class user_state:
         conn.child.sendline(user)
         index = conn.child.expect([r"[>$~/]","ssword:","sername:","nter:","ccount:","ogin:",pexpect.TIMEOUT,pexpect.EOF],timeout=verify_timeout)
         #print ("user_state %s:%s-%s:index=%s" % (conn.ip,conn.auth[0],conn.auth[1],index))
-        if index <= 1:
+        if index == 0:
+            print ("Got password %s:%s-%s" % (conn.ip,conn.auth[0],""))
+            conn.new_state(confirm_state)
+        elif index == 1:
             conn.new_state(passwd_state)
-        elif index < 5:
+        elif index < 6:
             conn.new_state(user_state)
         else:
             conn.new_state(conn_state)
