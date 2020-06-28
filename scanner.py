@@ -10,8 +10,10 @@ import threading
 from random import choice
 import Queue
 #import socket
-#import json
+import json
+import requests
 import sys
+import new_module
 from new_module import *
 from scapy.all import *
 from collections import deque
@@ -45,6 +47,7 @@ queue = Queue.Queue()
 queueLocker = threading.Lock()
 ipLocker = threading.Lock()
 ip_prompt_queue = deque(maxlen = 100)
+post_url = ""
 
 def ip2num(ip,bigendian = True):
     ip = [int(x) for x in ip.split('.')]
@@ -75,7 +78,7 @@ def read_auth():
         line=line.replace('\n','')
         line=line.split(',')
         auth_table.append(line)
-    print (auth_table)
+#    print (auth_table)
     fp.close()
     for item in auth_table:
 #        print (item[0:2])
@@ -122,6 +125,7 @@ def controlP():
         if time.time() - lastRecv > 30 and exitFlag == 1:
             exitFlag = 2
         elif exitFlag == 3:
+            my_http_post()
             end_time = datetime.datetime.now()
             print ("scanner mission completes...")
             print ("It totally costs: %d seconds..." % (end_time - start_time).seconds)
@@ -133,7 +137,7 @@ def cook(pkt):
     try:
         global lastRecv
         lastRecv = time.time()
-        #print ("pkt[TCP].flags: %s " % pkt[TCP].flags)
+        print ("pkt[TCP].flags: %s,%s " % (pkt[TCP].flags,pkt[IP].src))
         if pkt[TCP].flags == 18 and pkt[IP].src not in ip_prompt_queue:
             queue.put(pkt[IP].src)
             print ("23 port opened: %s " % (pkt[IP].src))
@@ -158,6 +162,9 @@ class spewer(threading.Thread):
         threading.Thread.__init__(self)
         self.ip_pair = read_ip()
         read_auth()
+        global post_url
+        post_url = sys.argv[3]
+
 
     def run(self):
         global exitFlag
@@ -212,10 +219,17 @@ class Scanner(threading.Thread):
                 con.run()
             con.exit()
             del con
-                
+
+def my_http_post():
+    s = json.dumps(post_json_list, ensure_ascii=False)
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    r = requests.post(post_url, data=s, headers=headers)
+    print (r.text)
+
+                                        
 if __name__ == "__main__": 
-    if len(sys.argv) != 3:
-        print ("usage: scanner.py thread_number and ipstr")
-        print ("example: scanner.py 20 192.168.42.3-192.168.42.5,192.168.43.1-192.168.43.5")
+    if len(sys.argv) != 4:
+        print ("usage: scanner.py thread_number and ipstr and post_url")
+        print ("example: scanner.py 20 192.168.42.3-192.168.42.5,192.168.43.1-192.168.43.5 http://httpbin.org/post")
         sys.exit(1)
     controlP()
